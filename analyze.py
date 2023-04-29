@@ -97,6 +97,7 @@ def saveResultFile(r, path, afile_path):
         
         # Extract valid predictions for every timestamp
         for timestamp in getSortedTimestamps(r):
+            row_created = False
             rstring = ''
             start, end = timestamp.split('-')
             for c in r[timestamp]:
@@ -109,9 +110,23 @@ def saveResultFile(r, path, afile_path):
                         end, 
                         150, 
                         12000, 
-                        cfg.CODES[c[0]] if c[0] in cfg.CODES else c[0], 
+                        cfg.CODES[c[0]] if c[0] in cfg.CODES else c[0],
                         label.split('_')[1] if len(label.split('_')) > 1 else label,
                         c[1])
+                    row_created = True
+
+        # Add "Non-Bird-Singing" row if no other row is created
+            if not row_created:
+                selection_id += 1
+                rstring += '{}\tSpectrogram 1\t1\t{}\t{}\t{}\t{}\t{}\t{}\t{:.4f}\n'.format(
+                selection_id,
+                start,
+                end,
+                150,
+                12000,
+                "N/A",
+                "Non-Bird-Singing",
+                1.0)
 
             # Write result string to file
             if len(rstring) > 0:
@@ -144,7 +159,7 @@ def saveResultFile(r, path, afile_path):
             rstring = ''
             start, end = timestamp.split('-')
             for c in r[timestamp]:
-                if c[1] > cfg.MIN_CONFIDENCE and (c[0] in cfg.SPECIES_LIST or len(cfg.SPECIES_LIST) == 0):                    
+                if c[1] > cfg.MIN_CONFIDENCE and (c[0] in cfg.SPECIES_LIST or len(cfg.SPECIES_LIST) == 0):
                     label = cfg.TRANSLATED_LABELS[cfg.LABELS.index(c[0])]
                     rstring += '\n{},{},{},{},{},{:.4f},{:.4f},{:.4f},{},{},{},{},{},{}'.format(
                         afile_path,
@@ -171,7 +186,7 @@ def saveResultFile(r, path, afile_path):
         # Output format for kaleidoscope
         header = 'INDIR,FOLDER,IN FILE,OFFSET,DURATION,scientific_name,common_name,confidence,lat,lon,week,overlap,sensitivity'
         out_string += header
-        
+
         folder_path, filename = os.path.split(afile_path)
         parent_folder, folder_name = os.path.split(folder_path)
 
@@ -179,7 +194,7 @@ def saveResultFile(r, path, afile_path):
             rstring = ''
             start, end = timestamp.split('-')
             for c in r[timestamp]:
-                if c[1] > cfg.MIN_CONFIDENCE and (c[0] in cfg.SPECIES_LIST or len(cfg.SPECIES_LIST) == 0):                    
+                if c[1] > cfg.MIN_CONFIDENCE and (c[0] in cfg.SPECIES_LIST or len(cfg.SPECIES_LIST) == 0):
                     label = cfg.TRANSLATED_LABELS[cfg.LABELS.index(c[0])]
                     rstring += '\n{},{},{},{},{},{},{},{:.4f},{:.4f},{:.4f},{},{},{}'.format(
                         parent_folder.rstrip('/'),
@@ -203,23 +218,40 @@ def saveResultFile(r, path, afile_path):
     else:
 
         # CSV output file
-        header = 'Start (s),End (s),Scientific name,Common name,Confidence\n'
+        header = 'Selection,Start (s),End (s),Scientific name,Common name,Confidence\n'
 
         # Write header
         out_string += header
 
+        selection_id = 0
+
         for timestamp in getSortedTimestamps(r):
+            row_created = False
             rstring = ''
-            for c in r[timestamp]:                
+            for c in r[timestamp]:
                 start, end = timestamp.split('-')
                 if c[1] > cfg.MIN_CONFIDENCE and (c[0] in cfg.SPECIES_LIST or len(cfg.SPECIES_LIST) == 0):
+                    selection_id += 1
                     label = cfg.TRANSLATED_LABELS[cfg.LABELS.index(c[0])]
-                    rstring += '{},{},{},{},{:.4f}\n'.format(
+                    rstring += '{},{},{},{},{},{:.4f}\n'.format(
+                        selection_id,
                         start,
                         end,
                         label.split('_')[0],
                         label.split('_')[1] if len(label.split('_')) > 1 else label,
                         c[1])
+                    row_created = True
+
+            # Add "Non-Bird-Singing" row if no other row is created
+            if not row_created:
+                selection_id += 1
+                rstring += '{},{},{},{},{},{:.4f}\n'.format(
+                    selection_id,
+                    start,
+                    end,
+                    "N/A",
+                    "Non-Bird-Singing",
+                    1)
 
             # Write result string to file
             if len(rstring) > 0:
@@ -395,7 +427,7 @@ if __name__ == '__main__':
     parser.add_argument('--batchsize', type=int, default=1, help='Number of samples to process at the same time. Defaults to 1.')
     parser.add_argument('--locale', default='en', help='Locale for translated species common names. Values in [\'af\', \'de\', \'it\', ...] Defaults to \'en\'.')
     parser.add_argument('--sf_thresh', type=float, default=0.03, help='Minimum species occurrence frequency threshold for location filter. Values in [0.01, 0.99]. Defaults to 0.03.')
-    parser.add_argument('--classifier', default=None, help='Path to custom trained classifier. Defaults to None. If set, --lat, --lon and --locale are ignored.') 
+    parser.add_argument('--classifier', default=None, help='Path to custom trained classifier. Defaults to None. If set, --lat, --lon and --locale are ignored.')
 
     args = parser.parse_args()
 
