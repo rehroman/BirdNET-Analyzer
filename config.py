@@ -10,6 +10,7 @@ RANDOM_SEED = 42
 ##########################
 
 #MODEL_PATH = 'checkpoints/V2.3/BirdNET_GLOBAL_3K_V2.3_Model' # This will load the protobuf model
+#MODEL_PATH = 'checkpoints/V2.3/BirdNET-Lite/model_integer_quant.tflite' # This will load the PINTO0309 compressed model
 MODEL_PATH = 'checkpoints/V2.3/BirdNET_GLOBAL_3K_V2.3_Model_FP32.tflite'
 MDATA_MODEL_PATH = 'checkpoints/V2.3/BirdNET_GLOBAL_3K_V2.3_MData_Model_FP16.tflite'
 LABELS_FILE = 'checkpoints/V2.3/BirdNET_GLOBAL_3K_V2.3_Labels.txt'
@@ -30,7 +31,7 @@ CUSTOM_CLASSIFIER = None
 SAMPLE_RATE = 48000 
 
 # We're using 3-second chunks
-SIG_LENGTH = 3.0 
+SIG_LENGTH = 3.0
 
 # Define overlap between consecutive chunks <3.0; 0 = no overlap
 SIG_OVERLAP = 0 

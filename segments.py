@@ -77,11 +77,6 @@ def parseFiles(flist, max_segments=100):
                 species_segments[s['species']] = []
             species_segments[s['species']].append(s)
 
-    # Shuffle segments for each species and limit to max_segments
-    for s in species_segments:
-        np.random.shuffle(species_segments[s])
-        species_segments[s] = species_segments[s][:max_segments]
-
     # Make dict of segments per audio file
     segments = {}
     seg_cnt = 0
@@ -113,6 +108,12 @@ def findSegments(afile, rfile):
 
     # Auto-detect result type
     rtype = detectRType(lines[0])
+
+    # Initialize variables to store species and selection values
+    prev_species = None
+    prev_selection = None
+    prev_end = None
+    start = None
 
     # Get start and end times based on rtype
     confidence = 0
@@ -147,14 +148,30 @@ def findSegments(afile, rfile):
 
         elif rtype == 'csv' and i > 0:
             d = lines[i].split(',')
-            start = float(d[0])
-            end = float(d[1])
+            cur_start = float(d[0])
+            cur_end = float(d[1])
             species = d[3]
             confidence = float(d[4])
+            selection = d[5]
 
         # Check if confidence is high enough
         if confidence >= cfg.MIN_CONFIDENCE:
-            segments.append({'audio': afile, 'start': start, 'end': end, 'species': species, 'confidence': confidence})
+            # If the current species is different from the previous species, create a new segment
+            if species != prev_species or i == len(lines) - 1:
+                if prev_species is not None:
+                    segments.append({'audio': afile, 'start': start, 'end': prev_end, 'species': prev_species,
+                                     'confidence': prev_confidence, 'selection': prev_selection})
+                start = cur_start
+                prev_selection = selection
+                prev_confidence = confidence
+            prev_species = species
+            prev_end = cur_end
+
+    # Add the last segment to file
+    if prev_species is not None:
+        segments.append(
+            {'audio': afile, 'start': start, 'end': prev_end, 'species': prev_species, 'confidence': confidence,
+             'selection': prev_selection})
 
     return segments
 
@@ -186,9 +203,11 @@ def extractSegments(item):
             # Get start and end times
             start = int(seg['start'] * cfg.SAMPLE_RATE)
             end = int(seg['end'] * cfg.SAMPLE_RATE)
-            offset = ((seg_length * cfg.SAMPLE_RATE) - (end - start)) // 2
-            start = max(0, start - offset)
-            end = min(len(sig), end + offset)  
+
+            # Add 1.5 second before and after the segment if bird-song
+            if seg['species'] == 'Corn Bunting':
+                start = max(0, start - 1.5 * cfg.SAMPLE_RATE)
+                end = min(len(sig), end + 1.5 * cfg.SAMPLE_RATE)
 
             # Make sure segmengt is long enough
             if end > start:
@@ -202,10 +221,9 @@ def extractSegments(item):
                     os.makedirs(outpath, exist_ok=True)
 
                 # Save segment
-                seg_name = '{:.3f}_{}_{}.wav'.format(seg['confidence'], seg_cnt, seg['audio'].split(os.sep)[-1].rsplit('.', 1)[0])
+                seg_name = '{:.3f}_{}_{}.wav'.format(seg['confidence'], seg['selection'], seg['audio'].split(os.sep)[-1].rsplit('.', 1)[0])
                 seg_path = os.path.join(outpath, seg_name)
                 audio.saveSignal(seg_sig, seg_path)
-                seg_cnt += 1
 
         except:
 

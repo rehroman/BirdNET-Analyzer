@@ -9,7 +9,12 @@ def openAudioFile(path, sample_rate=48000, offset=0.0, duration=None):
     # Open file with librosa (uses ffmpeg or libav)
     import librosa
 
-    sig, rate = librosa.load(path, sr=sample_rate, offset=offset, duration=duration, mono=True, res_type='kaiser_fast')
+    sig, rate = librosa.load(path, sr=sample_rate, offset=offset, duration=duration, mono=False, res_type='kaiser_fast')
+
+    # Check if the audio file has more than one channel
+    if sig.ndim > 1 and sig.shape[0] >= 3:
+        # Select the third channel
+        sig = sig[2, :]
 
     return sig, rate
 

@@ -38,6 +38,7 @@ def parseInputFiles(path, allowed_filetypes=['wav', 'flac', 'mp3', 'ogg', 'm4a']
                 files.append(os.path.join(root, f))
 
     print('Found {} files to analyze'.format(len(files)))
+    print('Using {} to analyze'.format(os.path.basename(cfg.MODEL_PATH)))
 
     return sorted(files)
 
@@ -218,7 +219,7 @@ def saveResultFile(r, path, afile_path):
     else:
 
         # CSV output file
-        header = 'Selection,Start (s),End (s),Scientific name,Common name,Confidence\n'
+        header = 'Start (s),End (s),Scientific name,Common name,Confidence,Selection\n'
 
         # Write header
         out_string += header
@@ -233,25 +234,27 @@ def saveResultFile(r, path, afile_path):
                 if c[1] > cfg.MIN_CONFIDENCE and (c[0] in cfg.SPECIES_LIST or len(cfg.SPECIES_LIST) == 0):
                     selection_id += 1
                     label = cfg.TRANSLATED_LABELS[cfg.LABELS.index(c[0])]
-                    rstring += '{},{},{},{},{},{:.4f}\n'.format(
-                        selection_id,
+                    rstring += '{},{},{},{},{:.2f},{:04}\n'.format(
                         start,
                         end,
                         label.split('_')[0],
                         label.split('_')[1] if len(label.split('_')) > 1 else label,
-                        c[1])
+                        c[1],
+                        selection_id
+                    )
                     row_created = True
 
             # Add "Non-Bird-Singing" row if no other row is created
             if not row_created:
                 selection_id += 1
-                rstring += '{},{},{},{},{},{:.4f}\n'.format(
-                    selection_id,
+                rstring += '{},{},{},{},{:.2f},{:04}\n'.format(
                     start,
                     end,
                     "N/A",
                     "Non-Bird-Singing",
-                    1)
+                    1.0,
+                    selection_id
+                )
 
             # Write result string to file
             if len(rstring) > 0:
