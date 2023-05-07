@@ -77,9 +77,8 @@ def parseFiles(flist, max_segments=100):
                 species_segments[s['species']] = []
             species_segments[s['species']].append(s)
 
-    # Shuffle segments for each species and limit to max_segments
+    # limit segments per species to max_segments
     for s in species_segments:
-        np.random.shuffle(species_segments[s])
         species_segments[s] = species_segments[s][:max_segments]
 
     # Make dict of segments per audio file
@@ -151,10 +150,11 @@ def findSegments(afile, rfile):
             end = float(d[1])
             species = d[3]
             confidence = float(d[4])
+            selection = d[5]
 
         # Check if confidence is high enough
         if confidence >= cfg.MIN_CONFIDENCE:
-            segments.append({'audio': afile, 'start': start, 'end': end, 'species': species, 'confidence': confidence})
+            segments.append({'audio': afile, 'start': start, 'end': end, 'species': species, 'confidence': confidence, 'selection': selection})
 
     return segments
 
@@ -188,7 +188,7 @@ def extractSegments(item):
             end = int(seg['end'] * cfg.SAMPLE_RATE)
             offset = ((seg_length * cfg.SAMPLE_RATE) - (end - start)) // 2
             start = max(0, start - offset)
-            end = min(len(sig), end + offset)  
+            end = min(len(sig), end + offset)
 
             # Make sure segmengt is long enough
             if end > start:
@@ -202,10 +202,9 @@ def extractSegments(item):
                     os.makedirs(outpath, exist_ok=True)
 
                 # Save segment
-                seg_name = '{:.3f}_{}_{}.wav'.format(seg['confidence'], seg_cnt, seg['audio'].split(os.sep)[-1].rsplit('.', 1)[0])
+                seg_name = '{:.3f}_{}_{}.wav'.format(seg['confidence'], seg['selection'], seg['audio'].split(os.sep)[-1].rsplit('.', 1)[0])
                 seg_path = os.path.join(outpath, seg_name)
                 audio.saveSignal(seg_sig, seg_path)
-                seg_cnt += 1
 
         except:
 
@@ -229,7 +228,7 @@ if __name__ == '__main__':
     parser.add_argument('--results', default='example/', help='Path to folder containing result files.')
     parser.add_argument('--o', default='example/', help='Output folder path for extracted segments.')
     parser.add_argument('--min_conf', type=float, default=0.1, help='Minimum confidence threshold. Values in [0.01, 0.99]. Defaults to 0.1.')
-    parser.add_argument('--max_segments', type=int, default=100, help='Number of randomly extracted segments per species.')
+    parser.add_argument('--max_segments', type=int, default=100, help='Number of extracted segments per species.')
     parser.add_argument('--seg_length', type=float, default=3.0, help='Length of extracted segments in seconds. Defaults to 3.0.')
     parser.add_argument('--threads', type=int, default=4, help='Number of CPU threads.')
 
