@@ -118,6 +118,7 @@ def findSegments(afile, rfile):
     for i in range(len(lines)):
         if rtype == 'table' and i > 0:
             d = lines[i].split('\t')
+            selection = d[0]
             start = float(d[3])
             end = float(d[4])
             species = d[-2]
@@ -202,7 +203,7 @@ def extractSegments(item):
                     os.makedirs(outpath, exist_ok=True)
 
                 # Save segment
-                seg_name = '{:.3f}_{}_{}.wav'.format(seg['confidence'], seg['selection'], seg['audio'].split(os.sep)[-1].rsplit('.', 1)[0])
+                seg_name = '{}_{:.3f}_{}.wav'.format(seg['selection'], seg['confidence'], seg['audio'].split(os.sep)[-1].rsplit('.', 1)[0])
                 seg_path = os.path.join(outpath, seg_name)
                 audio.saveSignal(seg_sig, seg_path)
 

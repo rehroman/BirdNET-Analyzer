@@ -255,10 +255,15 @@ def predict(samples):
     # Prepare sample and pass through model
     data = np.array(samples, dtype='float32')
     prediction = model.predict(data)
+    
+#DEBUG
+    print("Result before SIGMOID: ", prediction)
 
     # Logits or sigmoid activations?
     if cfg.APPLY_SIGMOID:
         prediction = model.flat_sigmoid(np.array(prediction), sensitivity=-cfg.SIGMOID_SENSITIVITY)
+        
+        print("Result after SIGMOID: ", prediction)
 
     return prediction
 
