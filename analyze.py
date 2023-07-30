@@ -212,6 +212,7 @@ def saveResultFile(r, path, afile_path):
         selection_id = 0
 
         for timestamp in getSortedTimestamps(r):
+            row_created = False
             rstring = ''
             for c in r[timestamp]:
                 start, end = timestamp.split('-')
@@ -226,6 +227,19 @@ def saveResultFile(r, path, afile_path):
                         c[1],
                         selection_id
                     )
+                    row_created = True
+
+            # row if no row created
+            if not row_created:
+                selection_id += 1
+                rstring += '{},{},{},{},{:.2f},{:04}\n'.format(
+                    start,
+                    end,
+                    "N/A",
+                    "No-Target",
+                    1.0,
+                    selection_id
+                )
 
             # Write result string to file
             if len(rstring) > 0:
