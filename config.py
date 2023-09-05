@@ -11,7 +11,8 @@ RANDOM_SEED = 42
 
 #MODEL_PATH = 'checkpoints/V2.3/BirdNET_GLOBAL_3K_V2.3_Model' # This will load the protobuf model
 #MODEL_PATH = 'checkpoints/V2.3/BirdNET_GLOBAL_3K_V2.3_Model_FP32.tflite'
-MODEL_PATH = '/mnt/c/Users/admin/Dropbox/Studium/Masterarbeit/tinyml-bird-song-detection/models/checkpoints_/baseline_two_class_model.tflite'
+#MODEL_PATH = '/mnt/c/Users/admin/Dropbox/Studium/Masterarbeit/tinyml-bird-song-detection/models/checkpoints_/baseline_two_class_model.tflite'
+MODEL_PATH = '/mnt/c/Users/admin/Dropbox/Studium/Masterarbeit/tinyml-bird-song-detection/models/checkpoints_/baseline_two_class_model_activationremoved.tflite'
 MDATA_MODEL_PATH = 'checkpoints/V2.3/BirdNET_GLOBAL_3K_V2.3_MData_Model_FP16.tflite'
 #LABELS_FILE = 'checkpoints/V2.3/BirdNET_GLOBAL_3K_V2.3_Labels.txt'
 LABELS_FILE = 'checkpoints/V2.3/custom_labels.txt'
@@ -70,7 +71,7 @@ CPU_THREADS = 8
 TFLITE_THREADS = 1 
 
 # False will output logits, True will convert to sigmoid activations
-APPLY_SIGMOID = False 
+APPLY_SIGMOID = True
 SIGMOID_SENSITIVITY = 1.0
 
 # Minimum confidence score to include in selection table 
