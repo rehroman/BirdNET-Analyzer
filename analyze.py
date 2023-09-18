@@ -244,14 +244,14 @@ def saveResultFile(r, path, afile_path):
                     )
                     row_created = True
 
-            # Add "Non-Bird-Singing" row if no other row is created
+            # Add "Non-Target" row if no other row is created
             if not row_created:
                 selection_id += 1
                 rstring += '{},{},{},{},{:.2f},{:04}\n'.format(
                     start,
                     end,
                     "N/A",
-                    "Non-Bird-Singing",
+                    "Non-Target",
                     1.0,
                     selection_id
                 )
